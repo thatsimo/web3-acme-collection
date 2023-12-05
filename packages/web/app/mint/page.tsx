@@ -41,7 +41,7 @@ const NftIndex: NextPage = () => {
             <Text>Successfully minted your NFT!</Text>
             <Text>
               <Link
-                href={`https://goerli.etherscan.io/tx/${data?.blockHash}`}
+                href={`https://sepolia.etherscan.io/tx/${data?.transactionHash}`}
                 isExternal
               >
                 View on Etherscan
@@ -74,7 +74,7 @@ const NftIndex: NextPage = () => {
             <Text>Successfully minted your NFT!</Text>
             <Text>
               <Link
-                href={`https://sepolia.etherscan.io/tx/${data?.blockHash}`}
+                href={`https://sepolia.etherscan.io/tx/${data?.transactionHash}`}
                 isExternal
               >
                 View on Etherscan
@@ -137,7 +137,7 @@ const NftIndex: NextPage = () => {
       <Text mb="2" fontSize="xl">
         This page will check your authenticated user&apos;s address for{' '}
         <Link
-          href="https://goerli.etherscan.io/token/0x982659f8ce3988096a735044ad42445d6514ba7e"
+          href={`https://sepolia.etherscan.io/token/${MEMBER_CONTRACT_ADDRESS}`}
           color="teal.500"
           isExternal
         >
