@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import {
   AcmeMemberNFT__factory,
   AcmeMemberNFT,
-} from 'contracts/types/typechain';
-import { providers, Wallet, ContractTransaction } from 'ethers/lib';
+} from '../shared/ethers/types/typechain';
+import { providers, Wallet, ContractReceipt } from 'ethers/lib';
 
 @Injectable()
 export class AcmeMemberNftContractService {
@@ -35,7 +35,7 @@ export class AcmeMemberNftContractService {
     return this.acmeMemberNftContract.owner();
   }
 
-  async safeMint(to: string): Promise<ContractTransaction> {
-    return this.acmeMemberNftContract.safeMint(to);
+  async safeMint(to: string): Promise<ContractReceipt> {
+    return (await this.acmeMemberNftContract.safeMint(to)).wait();
   }
 }

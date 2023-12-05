@@ -13,7 +13,7 @@
     "contracts:deploy:local": "pnpm --filter contracts deploy:local",
     "contracts:deploy:sepolia": "pnpm --filter contracts deploy:local",
     "contracts:test": "pnpm --filter contracts test",
-    "api": "pnpm --filter api dev",
+    "api": "pnpm --filter api start:dev",
     "api:build": "pnpm --filter api build"
   },
   "dependencies": {

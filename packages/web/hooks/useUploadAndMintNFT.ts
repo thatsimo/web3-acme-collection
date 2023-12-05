@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import {
   useAccount,
   useContractWrite,
@@ -7,16 +7,17 @@ import {
 } from 'wagmi'
 import { useContracts } from './useContracts'
 import { useIsMounted } from './useIsMounted'
-import { useToast } from '@chakra-ui/react'
 
 const IPFS_BASE_URL = 'https://ipfs.io/ipfs'
 
 type UseUploadAndMintNFTProps = {
-  onMintSuccess?: (data: any) => void
+  onMintSuccess?: (data?: any) => void
+  onMintError?: (data?: any) => void
 }
 
 export const useUploadAndMintNFT = ({
   onMintSuccess,
+  onMintError,
 }: UseUploadAndMintNFTProps) => {
   const [loading, setLoading] = useState(false)
   const [nftUri, setNftUri] = useState('')
@@ -35,7 +36,7 @@ export const useUploadAndMintNFT = ({
     enabled: address && !!nftUri && !!NFT_CONTRACT_ADDRESS && isMounted,
   })
 
-  const { data, write } = useContractWrite(config)
+  const { data, write, error } = useContractWrite(config)
 
   const { isLoading } = useWaitForTransaction({
     hash: data?.hash,
@@ -44,7 +45,21 @@ export const useUploadAndMintNFT = ({
       setLoading(false)
       onMintSuccess?.(data)
     },
+    onError: (error) => {
+      setNftUri('')
+      setLoading(false)
+      onMintError?.(error)
+    },
   })
+
+  useEffect(() => {
+    if (error) {
+      console.log(error.message)
+      setNftUri('')
+      setLoading(false)
+      onMintError?.(error.message.split('\n')[0])
+    }
+  }, [error])
 
   const uploadAndMint = async (fileToUpload: File, customName?: string) => {
     try {

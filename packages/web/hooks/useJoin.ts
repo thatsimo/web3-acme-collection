@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import {
   useAccount,
   useContractRead,
@@ -8,7 +8,7 @@ import {
 } from 'wagmi'
 import { useContracts } from './useContracts'
 import { useIsMounted } from './useIsMounted'
-import { use } from 'chai'
+import axios from 'axios'
 import { on } from 'events'
 
 type UseJoinProps = {
@@ -18,6 +18,7 @@ type UseJoinProps = {
 
 export const useJoin = ({ onJoinSuccess, onJoinError }: UseJoinProps) => {
   const [hasMintPerm, setHasMintPerm] = useState(false)
+  const [isLoading, setLoading] = useState(false)
   const { isMounted } = useIsMounted()
 
   const { address } = useAccount()
@@ -38,8 +39,12 @@ export const useJoin = ({ onJoinSuccess, onJoinError }: UseJoinProps) => {
   })
 
   useEffect(() => {
-    if (!isNumberOfNftsLoading && numberOfNfts) {
-      setHasMintPerm(numberOfNfts > 0)
+    if (!isNumberOfNftsLoading) {
+      if (!numberOfNfts) {
+        setHasMintPerm(false)
+      } else {
+        setHasMintPerm(numberOfNfts > 0)
+      }
     }
   }, [numberOfNfts, isNumberOfNftsLoading])
 
@@ -49,36 +54,27 @@ export const useJoin = ({ onJoinSuccess, onJoinError }: UseJoinProps) => {
     }
   }, [isNumberOfNftsError, onJoinError])
 
-  const { config } = usePrepareContractWrite({
-    address: MEMBER_CONTRACT_ADDRESS as `0x${string}`,
-    abi: AcmeMemberNFTAbi,
-    functionName: 'safeMint',
-    args: address ? [address] : undefined,
-    enabled: address && !hasMintPerm && !!MEMBER_CONTRACT_ADDRESS && isMounted,
-  })
-
-  const { data, write } = useContractWrite(config)
-
   const join = () => {
-    if (!write) {
-      return
-    }
-
-    if (hasMintPerm) {
-      onJoinError?.("You've already joined!")
-      return
-    }
-
-    write()
+    setLoading(true)
+    axios
+      .post(
+        `${process.env.NEXT_PUBLIC_ACME_NFT_API}/api/acme-member-nft-contract/mint`,
+        {
+          to: address,
+        },
+      )
+      .then(({ data }) => {
+        console.log(data)
+        onJoinSuccess?.(data)
+        refetchNumberOfNfts()
+      })
+      .catch(({ response }) => {
+        onJoinError?.(response.data)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }
-
-  const { isLoading } = useWaitForTransaction({
-    hash: data?.hash,
-    onSuccess: (data) => {
-      onJoinSuccess?.(data)
-      refetchNumberOfNfts()
-    },
-  })
 
   return { isLoading: isLoading || isNumberOfNftsLoading, hasMintPerm, join }
 }

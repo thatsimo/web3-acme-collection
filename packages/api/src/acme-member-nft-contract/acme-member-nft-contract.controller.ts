@@ -10,7 +10,7 @@ import { AcmeMemberNftContractService as AcmeMemberNftContractService } from './
 import * as ethers from 'ethers/lib';
 import { ApiTags } from '@nestjs/swagger';
 import { EthersError } from 'src/shared/ethers/types/EthersError';
-import { AcmeMemberNFTMintDTO } from './acme-member-nft-mint.dto';
+import { AcmeMemberNFTMint } from './acme-member-nft-mint.dto';
 
 @Controller('api/acme-member-nft-contract')
 @ApiTags('acme-nft-contracts')
@@ -39,8 +39,8 @@ export class AcmeMemberNftContractController {
 
   @Post('/mint')
   async mint(
-    @Body() { to }: AcmeMemberNFTMintDTO,
-  ): Promise<ethers.ContractTransaction> {
+    @Body() { to }: AcmeMemberNFTMint,
+  ): Promise<ethers.ContractReceipt> {
     try {
       return await this.acmeMemberNftContractService.safeMint(to);
     } catch (error) {

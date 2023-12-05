@@ -13,6 +13,7 @@ import {
   Spacer,
   useToast,
   Flex,
+  Spinner,
 } from '@chakra-ui/react'
 import type { NextPage } from 'next'
 import { useState } from 'react'
@@ -57,7 +58,7 @@ const NftIndex: NextPage = () => {
     onJoinError(error) {
       toast({
         title: 'Failed to mint your NFT!',
-        description: <Text>{error}</Text>,
+        description: <Text>{error?.error?.reason || 'Try later'}</Text>,
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -88,6 +89,15 @@ const NftIndex: NextPage = () => {
       })
       refetchNftBalanceData()
       setModalIsOpen(false)
+    },
+    onMintError: (error) => {
+      toast({
+        title: 'Failed to mint your NFT!',
+        description: <Text>{error || 'Try later'}</Text>,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      })
     },
   })
 
@@ -157,7 +167,7 @@ const NftIndex: NextPage = () => {
         >
           Minting the AcmeMemberNFT
         </Button>
-        .
+        {isLoading && <Spinner ml={4} size="sm" color="teal.500" />}
       </Text>
       {getAlert()}
       <Box p="8" mt="8" bg="gray.100">

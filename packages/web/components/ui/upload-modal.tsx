@@ -9,7 +9,7 @@ import {
   Button,
   ButtonGroup,
   Input,
-  useToast,
+  Spinner,
   FormControl,
 } from '@chakra-ui/react'
 import { useRef, useState } from 'react'
@@ -29,7 +29,6 @@ export const UploadModal = ({
 }: UploadModalProps) => {
   const inputFile = useRef(null)
   const initialRef = useRef(null)
-  const toast = useToast()
   const [customName, setCustomName] = useState('')
 
   const handleChange = (e: any) => {
@@ -74,6 +73,7 @@ export const UploadModal = ({
                 inputFile?.current && (inputFile.current as any).click()
               }
             >
+              {loading && <Spinner mr={3} size="sm" color="white" />}
               {loading ? 'Uploading...' : 'Upload & Mint'}
             </Button>
             <Button onClick={onClose}>Close</Button>

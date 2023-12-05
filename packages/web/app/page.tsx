@@ -29,6 +29,11 @@ const Home: NextPage = () => {
           </Link>
         </ListItem>
         <ListItem>
+          <Link href="https://nestjs.com/" color="teal.500" isExternal>
+            Nest.js
+          </Link>
+        </ListItem>
+        <ListItem>
           <Link href="https://www.rainbowkit.com/" color="teal.500" isExternal>
             RainbowKit
           </Link>
