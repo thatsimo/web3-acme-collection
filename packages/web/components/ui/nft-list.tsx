@@ -2,18 +2,22 @@
 import {
   Alert,
   AlertIcon,
-  Box,
-  Flex,
   Image,
   SimpleGrid,
-  Text,
   Divider,
+  CardBody,
+  Card,
+  Stack,
+  Heading,
+  CardFooter,
+  Button,
 } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
+import { EditModal } from './edit-modal'
 
-type NftMetadataType = {
-  description: string
+export type NftMetadataType = {
+  tokenId: bigint
   image: string
   name: string
 }
@@ -25,16 +29,20 @@ const buildPinataUrl = (ipfsHash: string) =>
   `${GATEWAY_URL}/ipfs/${ipfsHash}?pinataGatewayToken=${GATEWAY_TOKEN}`
 
 type NftListProps = {
-  nftTokenUris?: Array<any>
+  nfts: {
+    tokenId: string
+    tokenUri: string
+  }[]
 }
 
-export const NftList = ({ nftTokenUris }: NftListProps): JSX.Element => {
-  const [nfts, setNfts] = useState<Array<NftMetadataType>>([])
+export const NftList = ({ nfts }: NftListProps): JSX.Element => {
+  const [nftsList, setNftsList] = useState<Array<NftMetadataType>>([])
+  const [selectedNft, setSelectedNft] = useState<NftMetadataType>()
 
   const { address } = useAccount()
 
   useEffect(() => {
-    if (!nftTokenUris?.length) {
+    if (!nfts?.length) {
       return
     }
     const fetchNftData = async (ipfsHash: string) => {
@@ -49,8 +57,7 @@ export const NftList = ({ nftTokenUris }: NftListProps): JSX.Element => {
 
     const processTokenUris = async () => {
       const nftData = await Promise.all(
-        nftTokenUris.map(async ({ result }) => {
-          const tokenUri = result as string
+        nfts.map(async ({ tokenId, tokenUri }) => {
           if (tokenUri) {
             const ipfsHash = tokenUri.replace('https://ipfs.io/ipfs/', '')
             const ipfsData = await fetchNftData(ipfsHash)
@@ -59,23 +66,24 @@ export const NftList = ({ nftTokenUris }: NftListProps): JSX.Element => {
             )
             return {
               ...ipfsData,
+              tokenId,
               image,
             }
           }
         }),
       )
 
-      setNfts(nftData)
+      setNftsList(nftData)
     }
 
     processTokenUris()
-  }, [nftTokenUris])
+  }, [nfts])
 
   if (!address) {
     return <></>
   }
 
-  if (!nftTokenUris?.length) {
+  if (!nfts?.length) {
     return (
       <>
         {' '}
@@ -89,35 +97,42 @@ export const NftList = ({ nftTokenUris }: NftListProps): JSX.Element => {
   }
 
   return (
-    <div>
+    <>
       <Divider my="8" borderColor="gray.400" />
       <SimpleGrid my="6" columns={[1, 1, 2]} gap="6">
-        {nfts.map((nft, id) => {
+        {nftsList.map((nft, id) => {
           return (
-            <Flex
-              key={id}
-              p="4"
-              gap="4"
-              alignItems="center"
-              backgroundColor="white"
-              border="1px"
-              borderColor="gray.300"
-            >
+            <Card key={id} direction="row" overflow="hidden" variant="outline">
               <Image
                 boxSize={[100, 100, 200]}
                 objectFit="cover"
                 src={nft.image}
                 alt={nft.name}
               />
-              <Box>
-                <Text fontSize="lg" fontWeight="semibold">
-                  {nft.name}
-                </Text>
-              </Box>
-            </Flex>
+              <Stack>
+                <CardBody>
+                  <Heading size="md">{nft.name}</Heading>
+                </CardBody>
+                <CardFooter>
+                  <Button
+                    colorScheme="teal"
+                    onClick={() => setSelectedNft(nft)}
+                  >
+                    Edit Name
+                  </Button>
+                </CardFooter>
+              </Stack>
+            </Card>
           )
         })}
       </SimpleGrid>
-    </div>
+      {selectedNft && (
+        <EditModal
+          nft={selectedNft}
+          isOpen={!!selectedNft}
+          onClose={() => setSelectedNft(undefined)}
+        />
+      )}
+    </>
   )
 }

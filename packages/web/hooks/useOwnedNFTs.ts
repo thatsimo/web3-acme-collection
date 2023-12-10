@@ -52,10 +52,13 @@ export const useOwnedNFTs = () => {
     const contractCalls = nftTokenIds?.map(({ result }) => {
       const tokenId = Number(result)?.toString()
       return {
-        address: NFT_CONTRACT_ADDRESS,
-        abi: AcmeNFTAbi,
-        functionName: 'tokenURI',
-        args: tokenId ? [tokenId] : undefined,
+        tokenId,
+        contract: {
+          address: NFT_CONTRACT_ADDRESS,
+          abi: AcmeNFTAbi,
+          functionName: 'tokenURI',
+          args: tokenId ? [tokenId] : undefined,
+        },
       }
     })
 
@@ -64,9 +67,16 @@ export const useOwnedNFTs = () => {
 
   // Gets all of the NFT tokenUris owned by the connected address.
   const { data: nftTokenUris } = useContractReads({
-    contracts: tokenUriContractsArray as any,
+    contracts: tokenUriContractsArray.map(({ contract }) => contract) as any,
     enabled: tokenUriContractsArray.length > 0,
   })
 
-  return { nftTokenUris, refetchNftBalanceData }
+  const nfts = tokenUriContractsArray.map(({ tokenId }, index) => {
+    return {
+      tokenId,
+      tokenUri: (nftTokenUris?.[index]?.result as string) || '',
+    }
+  })
+
+  return { nfts, refetchNftBalanceData }
 }

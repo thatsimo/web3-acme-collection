@@ -27,7 +27,7 @@ import { useJoin } from '../../hooks/useJoin'
 import { useUploadAndMintNFT } from '../../hooks/useUploadAndMintNFT'
 
 const NftIndex: NextPage = () => {
-  const { nftTokenUris, refetchNftBalanceData } = useOwnedNFTs()
+  const { nfts, refetchNftBalanceData } = useOwnedNFTs()
   const { isMounted } = useIsMounted()
   const { address, isConnected } = useAccount()
   const toast = useToast()
@@ -192,7 +192,7 @@ const NftIndex: NextPage = () => {
             {isConnected ? 'Mint NFT' : 'Please Connect Wallet'}
           </Button>
         </Flex>
-        <NftList nftTokenUris={nftTokenUris} />
+        <NftList nfts={nfts} />
       </Box>
       <UploadModal
         isOpen={modalIsOpen}
