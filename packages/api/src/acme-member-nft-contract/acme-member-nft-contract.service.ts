@@ -4,7 +4,7 @@ import {
   AcmeMemberNFT__factory,
   AcmeMemberNFT,
 } from '../shared/ethers/types/typechain';
-import { providers, Wallet, ContractReceipt } from 'ethers/lib';
+import { providers, Wallet, ContractReceipt } from 'ethers';
 
 @Injectable()
 export class AcmeMemberNftContractService {
