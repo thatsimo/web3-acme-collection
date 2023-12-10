@@ -19,20 +19,18 @@ import { useCustomName } from '../../hooks/useCustomName'
 type EditModalProps = {
   isOpen: boolean
   onClose: () => void
-  loading?: boolean
   nft: NftMetadataType
 }
 
 export const EditModal = ({
   isOpen,
   onClose,
-  loading,
   nft: { tokenId, name },
 }: EditModalProps) => {
   const initialRef = useRef(null)
   const [customName, setCustomName] = useState('')
 
-  const { editCustomName } = useCustomName({
+  const { editCustomName, loading } = useCustomName({
     tokenId,
   })
 
