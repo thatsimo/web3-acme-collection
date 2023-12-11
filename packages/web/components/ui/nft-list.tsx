@@ -10,11 +10,17 @@ import {
   Stack,
   Heading,
   CardFooter,
+  useToast,
+  Text,
+  Link,
   Button,
+  Center,
+  Spinner,
 } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { EditModal } from './edit-modal'
+import { useCustomName } from '../../hooks/useCustomName'
 
 export type NftMetadataType = {
   tokenId: bigint
@@ -33,13 +39,56 @@ type NftListProps = {
     tokenId: string
     tokenUri: string
   }[]
+  loading?: boolean
+  refetchNftBalanceData: () => void
 }
 
-export const NftList = ({ nfts }: NftListProps): JSX.Element => {
+export const NftList = ({
+  nfts,
+  loading,
+  refetchNftBalanceData,
+}: NftListProps): JSX.Element => {
   const [nftsList, setNftsList] = useState<Array<NftMetadataType>>([])
   const [selectedNft, setSelectedNft] = useState<NftMetadataType>()
 
   const { address } = useAccount()
+
+  const toast = useToast()
+
+  const { editCustomName, loading: editLoading } = useCustomName({
+    onTxSuccess: (data) => {
+      toast({
+        title: 'Transaction Successful',
+        description: (
+          <>
+            <Text>Successfully minted your NFT!</Text>
+            <Text>
+              <Link
+                href={`https://sepolia.etherscan.io/tx/${data?.transactionHash}`}
+                isExternal
+              >
+                View on Etherscan
+              </Link>
+            </Text>
+          </>
+        ),
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      })
+      refetchNftBalanceData()
+      setSelectedNft(undefined)
+    },
+    onTxError: (error) => {
+      toast({
+        title: 'Failed to mint your NFT!',
+        description: <Text>{error || 'Try later'}</Text>,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      })
+    },
+  })
 
   useEffect(() => {
     if (!nfts?.length) {
@@ -81,6 +130,17 @@ export const NftList = ({ nfts }: NftListProps): JSX.Element => {
 
   if (!address) {
     return <></>
+  }
+
+  if (loading) {
+    return (
+      <>
+        <Divider my="8" borderColor="gray.400" />
+        <Center>
+          <Spinner />
+        </Center>
+      </>
+    )
   }
 
   if (!nfts?.length) {
@@ -130,6 +190,8 @@ export const NftList = ({ nfts }: NftListProps): JSX.Element => {
         <EditModal
           nft={selectedNft}
           isOpen={!!selectedNft}
+          loading={editLoading}
+          editCustomName={editCustomName}
           onClose={() => setSelectedNft(undefined)}
         />
       )}

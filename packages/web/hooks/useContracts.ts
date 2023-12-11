@@ -8,8 +8,8 @@ import { useNetwork } from 'wagmi'
 import { useMemo } from 'react'
 import { localhost, sepolia } from 'viem/chains'
 
-const MEMBER_NFT_SEPOLIA_ADDRESS = '0x89C4dB33E5433a705487b3C70410b328404f3DF9'
-const NFT_SEPOLIA_ADDRESS = '0x6f8167321Dcb00a577a76ACFFDA9AC7fA492BC88'
+const MEMBER_NFT_SEPOLIA_ADDRESS = '0x3414d8bEe89ce2a2e2Df5052B332aB44891b96c1'
+const NFT_SEPOLIA_ADDRESS = '0xB0E00e954e0E7052BE7b452f4D080900547232FA'
 
 export const useContracts = () => {
   const { chain } = useNetwork()

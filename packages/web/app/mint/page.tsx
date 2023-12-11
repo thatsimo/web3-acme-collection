@@ -27,7 +27,11 @@ import { useJoin } from '../../hooks/useJoin'
 import { useUploadAndMintNFT } from '../../hooks/useUploadAndMintNFT'
 
 const NftIndex: NextPage = () => {
-  const { nfts, refetchNftBalanceData } = useOwnedNFTs()
+  const {
+    nfts,
+    refetchNftBalanceData,
+    loading: galleryLoading,
+  } = useOwnedNFTs()
   const { isMounted } = useIsMounted()
   const { address, isConnected } = useAccount()
   const toast = useToast()
@@ -66,7 +70,8 @@ const NftIndex: NextPage = () => {
     },
   })
 
-  const { uploadAndMint, loading } = useUploadAndMintNFT({
+  const { uploadAndMint, loading: uploadLoading } = useUploadAndMintNFT({
+    ownedNFTsNo: nfts?.length || 0,
     onMintSuccess: (data) => {
       toast({
         title: 'Transaction Successful',
@@ -108,22 +113,22 @@ const NftIndex: NextPage = () => {
   }
 
   const getAlert = () => {
-    if (!hasMintPerm) {
-      return (
-        <Alert status="warning" mb="4">
-          <AlertIcon />
-          <AlertTitle>Access Denied:</AlertTitle>
-          <AlertDescription>You are not a member.</AlertDescription>
-        </Alert>
-      )
-    }
-
     if (!isConnected) {
       return (
         <Alert status="warning" mb="4">
           <AlertIcon />
           <AlertTitle>Access Denied:</AlertTitle>
           <AlertDescription>Please Connect a wallet</AlertDescription>
+        </Alert>
+      )
+    }
+
+    if (!hasMintPerm) {
+      return (
+        <Alert status="warning" mb="4">
+          <AlertIcon />
+          <AlertTitle>Access Denied:</AlertTitle>
+          <AlertDescription>You are not a member.</AlertDescription>
         </Alert>
       )
     }
@@ -170,35 +175,43 @@ const NftIndex: NextPage = () => {
         {isLoading && <Spinner ml={4} size="sm" color="teal.500" />}
       </Text>
       {getAlert()}
-      <Box p="8" mt="8" bg="gray.100">
-        <Flex>
-          <Box>
-            <Text fontSize="lg" textAlign="start">
-              AcmeMemberNFT Contract Address:{' '}
-              <Code fontSize="md">{MEMBER_CONTRACT_ADDRESS}</Code>
-            </Text>
-            <Text fontSize="lg" textAlign="start">
-              AcmeNFT Contract Address:{' '}
-              <Code fontSize="md">{NFT_CONTRACT_ADDRESS}</Code>
-            </Text>
+      {isConnected && (
+        <>
+          <Box p="8" mt="8" bg="gray.100">
+            <Flex>
+              <Box>
+                <Text fontSize="lg" textAlign="start">
+                  AcmeMemberNFT Contract Address:{' '}
+                  <Code fontSize="md">{MEMBER_CONTRACT_ADDRESS}</Code>
+                </Text>
+                <Text fontSize="lg" textAlign="start">
+                  AcmeNFT Contract Address:{' '}
+                  <Code fontSize="md">{NFT_CONTRACT_ADDRESS}</Code>
+                </Text>
+              </Box>
+              <Spacer />
+              <Button
+                colorScheme="teal"
+                size="lg"
+                isDisabled={!hasMintPerm || !isConnected}
+                onClick={() => setModalIsOpen(true)}
+              >
+                {isConnected ? 'Mint NFT' : 'Please Connect Wallet'}
+              </Button>
+            </Flex>
+            <NftList
+              nfts={nfts}
+              loading={galleryLoading}
+              refetchNftBalanceData={refetchNftBalanceData}
+            />
           </Box>
-          <Spacer />
-          <Button
-            colorScheme="teal"
-            size="lg"
-            isDisabled={!hasMintPerm || !isConnected}
-            onClick={() => setModalIsOpen(true)}
-          >
-            {isConnected ? 'Mint NFT' : 'Please Connect Wallet'}
-          </Button>
-        </Flex>
-        <NftList nfts={nfts} />
-      </Box>
+        </>
+      )}
       <UploadModal
         isOpen={modalIsOpen}
         onClose={() => setModalIsOpen(false)}
         uploadAndMint={uploadAndMint}
-        loading={loading}
+        loading={uploadLoading}
       />
     </>
   )

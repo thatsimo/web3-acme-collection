@@ -1,3 +1,5 @@
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Wallet, providers } from 'ethers';
@@ -10,7 +12,10 @@ export class AcmeNftContractService implements OnModuleInit {
   private acmeNftContractFactory: AcmeNFT__factory;
   private acmeNftContract: AcmeNFT;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly httpService: HttpService,
+  ) {
     this.provider = new providers.JsonRpcProvider({
       url: this.configService.get('EVM_URL'),
     });
@@ -39,20 +44,24 @@ export class AcmeNftContractService implements OnModuleInit {
           authorization: `Bearer ${this.configService.get('PINATA_JWT')}`,
         };
 
-        const body = JSON.stringify({
+        const body = {
           ipfsPinHash,
-          keyvalues: JSON.stringify({
+          keyvalues: {
             name: customName,
-          }),
-        });
+          },
+        };
 
-        await fetch('https://api.pinata.cloud/pinning/hashMetadata', {
-          method: 'PUT',
-          headers,
-          body,
-        });
+        const res = await firstValueFrom(
+          this.httpService.put(
+            'https://api.pinata.cloud/pinning/hashMetadata',
+            body,
+            {
+              headers,
+            },
+          ),
+        );
 
-        console.log({ tokenId, customName, tokenURI, event });
+        console.log({ tokenId, customName, tokenURI, event, res });
       },
     );
   }

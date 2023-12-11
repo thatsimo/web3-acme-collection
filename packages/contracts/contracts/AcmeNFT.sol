@@ -87,13 +87,10 @@ contract AcmeNFT is
         // If the caller has chosen a custom name, add the cost
         if (bytes(customName).length > 0) {
             mintCost = mintCost.add(CUSTOM_NAME_COST);
-
-            // Emit an event for the custom name purchase
-            emit CustomNamePurchased(_tokenIdCounter.current(), customName);
         }
 
         // Ensure the sent value is correct
-        require(msg.value < mintCost, "Insufficient funds to mint the NFT");
+        require(msg.value >= mintCost, "Insufficient funds to mint the NFT");
 
         // Ensure the maximum NFTs per transaction limit is not exceeded
         require(
@@ -106,6 +103,11 @@ contract AcmeNFT is
         _tokenIdCounter.increment();
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
+
+        if (bytes(customName).length > 0) {
+            // Emit an event for the custom name purchase
+            emit CustomNamePurchased(_tokenIdCounter.current(), customName);
+        }
 
         // Emit the minted event
         emit NFTMinted(to, _tokenIdCounter.current());
@@ -131,8 +133,8 @@ contract AcmeNFT is
         // Ensure the caller is the owner of the NFT
         require(_isApprovedOrOwner(msg.sender, tokenId), "You are not the owner of the NFT");
 
-        // Ensure the custom name is not already taken
-        require(bytes(_customNames[tokenId]).length == 0, "Custom name is already taken");
+        // Ensure the custom name is not empty
+        require(bytes(customName).length > 0, "Specify a custom name");
 
         // Ensure the sent value is correct
         require(msg.value >= CUSTOM_NAME_COST, "Insufficient funds to purchase the custom name");

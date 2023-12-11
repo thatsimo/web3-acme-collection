@@ -10,14 +10,17 @@ export const useOwnedNFTs = () => {
   const { isMounted } = useIsMounted()
   const { NFT_CONTRACT_ADDRESS } = useContracts()
 
-  const { data: nftBalanceData, refetch: refetchNftBalanceData } =
-    useContractRead({
-      address: NFT_CONTRACT_ADDRESS as `0x${string}`,
-      abi: erc721ABI,
-      functionName: 'balanceOf',
-      args: address ? [address] : undefined,
-      enabled: isMounted && !!address && !!NFT_CONTRACT_ADDRESS,
-    })
+  const {
+    data: nftBalanceData,
+    refetch: refetchNftBalanceData,
+    isLoading: fetchLoading,
+  } = useContractRead({
+    address: NFT_CONTRACT_ADDRESS as `0x${string}`,
+    abi: erc721ABI,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    enabled: isMounted && !!address && !!NFT_CONTRACT_ADDRESS,
+  })
 
   const contracts = useMemo(() => {
     const calls = []
@@ -38,7 +41,7 @@ export const useOwnedNFTs = () => {
   }, [address, nftBalanceData, NFT_CONTRACT_ADDRESS])
 
   // Gets all of the NFT tokenIds owned by the connected address.
-  const { data: nftTokenIds } = useContractReads({
+  const { data: nftTokenIds, isLoading: idsLoading } = useContractReads({
     contracts: contracts as any,
     enabled: isMounted && contracts.length > 0,
   })
@@ -66,17 +69,25 @@ export const useOwnedNFTs = () => {
   }, [NFT_CONTRACT_ADDRESS, nftTokenIds])
 
   // Gets all of the NFT tokenUris owned by the connected address.
-  const { data: nftTokenUris } = useContractReads({
+  const { data: nftTokenUris, isLoading: urisLoading } = useContractReads({
     contracts: tokenUriContractsArray.map(({ contract }) => contract) as any,
     enabled: tokenUriContractsArray.length > 0,
   })
 
-  const nfts = tokenUriContractsArray.map(({ tokenId }, index) => {
-    return {
-      tokenId,
-      tokenUri: (nftTokenUris?.[index]?.result as string) || '',
-    }
-  })
+  const nfts = tokenUriContractsArray.flatMap(({ tokenId }, index) =>
+    nftTokenUris?.[index]?.result
+      ? [
+          {
+            tokenId,
+            tokenUri: nftTokenUris[index].result as string,
+          },
+        ]
+      : [],
+  )
 
-  return { nfts, refetchNftBalanceData }
+  return {
+    nfts,
+    refetchNftBalanceData,
+    loading: fetchLoading || idsLoading || urisLoading,
+  }
 }

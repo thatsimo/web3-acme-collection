@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from 'react'
+import { use, useEffect, useMemo, useState } from 'react'
 import {
   useAccount,
   useContractWrite,
@@ -7,15 +7,18 @@ import {
 } from 'wagmi'
 import { useContracts } from './useContracts'
 import { useIsMounted } from './useIsMounted'
+import { customNameCost, mintLT15 } from '../consts/costs'
 
 const IPFS_BASE_URL = 'https://ipfs.io/ipfs'
 
 type UseUploadAndMintNFTProps = {
+  ownedNFTsNo: number
   onMintSuccess?: (data?: any) => void
   onMintError?: (data?: any) => void
 }
 
 export const useUploadAndMintNFT = ({
+  ownedNFTsNo,
   onMintSuccess,
   onMintError,
 }: UseUploadAndMintNFTProps) => {
@@ -28,12 +31,21 @@ export const useUploadAndMintNFT = ({
   const { AcmeNFTAbi, NFT_CONTRACT_ADDRESS } = useContracts()
   const { address } = useAccount()
 
+  const mintCost = useMemo(() => {
+    let value = ownedNFTsNo < 15 ? mintLT15.value : customNameCost.value
+    if (customName) {
+      value += customNameCost.value
+    }
+    return value
+  }, [ownedNFTsNo, customName])
+
   const { config } = usePrepareContractWrite({
     address: NFT_CONTRACT_ADDRESS as `0x${string}`,
     abi: AcmeNFTAbi,
     functionName: 'safeMint',
     args: address ? [address, nftUri, customName] : undefined,
     enabled: address && !!nftUri && !!NFT_CONTRACT_ADDRESS && isMounted,
+    value: mintCost,
   })
 
   const { data, write, error } = useContractWrite(config)

@@ -7,22 +7,23 @@ import {
 } from 'wagmi'
 import { useContracts } from './useContracts'
 import { useIsMounted } from './useIsMounted'
+import { parseEther } from 'viem'
+import { customNameCost } from '../consts/costs'
 
 const IPFS_BASE_URL = 'https://ipfs.io/ipfs'
 
 type UseCustomNameProps = {
-  tokenId: bigint
   onTxSuccess?: (data?: any) => void
   onTxError?: (data?: any) => void
 }
 
 export const useCustomName = ({
   onTxSuccess,
-  tokenId,
   onTxError,
 }: UseCustomNameProps) => {
   const [loading, setLoading] = useState(false)
   const [customName, setCustomName] = useState('')
+  const [tokenId, setTokenId] = useState<bigint>()
   const { isMounted } = useIsMounted()
 
   const { AcmeNFTAbi, NFT_CONTRACT_ADDRESS } = useContracts()
@@ -31,7 +32,8 @@ export const useCustomName = ({
     address: NFT_CONTRACT_ADDRESS as `0x${string}`,
     abi: AcmeNFTAbi,
     functionName: 'purchaseCustomName',
-    args: [tokenId, customName],
+    args: tokenId && customName ? [tokenId, customName] : undefined,
+    value: customNameCost.value,
     enabled: !!customName && !!NFT_CONTRACT_ADDRESS && isMounted,
   })
 
@@ -60,16 +62,18 @@ export const useCustomName = ({
     }
   }, [error])
 
-  const editCustomName = async (newName: string) => {
+  const editCustomName = async (tokenId: bigint, newName: string) => {
+    setTokenId(tokenId)
     setCustomName(newName)
   }
 
   useEffect(() => {
-    if (customName && write) {
+    if (tokenId && customName && write) {
       write()
       setCustomName('')
+      setTokenId(undefined)
     }
-  }, [customName, write])
+  }, [customName, tokenId, write])
 
   return { editCustomName, loading: loading || isLoading }
 }

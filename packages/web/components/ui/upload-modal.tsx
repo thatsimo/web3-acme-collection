@@ -13,6 +13,7 @@ import {
   FormControl,
 } from '@chakra-ui/react'
 import { useRef, useState } from 'react'
+import { customNameCost } from '../../consts/costs'
 
 type UploadModalProps = {
   isOpen: boolean
@@ -47,7 +48,10 @@ export const UploadModal = ({
         <ModalHeader>Mint NFT</ModalHeader>
         <ModalBody pb={6}>
           <FormControl>
-            <FormLabel>Custom Name (optional)</FormLabel>
+            <FormLabel>
+              Custom Name (+
+              {`${customNameCost.label} ${customNameCost.currency}`})
+            </FormLabel>
             <Input
               ref={initialRef}
               placeholder="ACME Product"
